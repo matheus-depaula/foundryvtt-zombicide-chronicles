@@ -1,0 +1,15 @@
+# Stash unstaged files
+
+git stash -q --keep-index
+
+# Ensure code-quality
+
+pnpm code-quality
+
+# Stage changed files
+
+git add -u
+
+# Re-apply original unstaged changes
+
+git stash pop -q

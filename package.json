@@ -1,0 +1,49 @@
+{
+  "name": "foundryvtt-zombicide-chronicles",
+  "version": "0.1.0",
+  "description": "An unofficial Zombicide Chronicles system for Foundry VTT",
+  "type": "module",
+  "license": "GNU GPLv3",
+  "private": true,
+  "scripts": {
+    "build": "gulp build",
+    "link-data": "gulp linkData",
+    "start:dev": "gulp serve",
+    "lint:check": "eslint . public --ext .ts,.mts,.js,.mjs,.scss,.json --cache --cache-location node_modules/.cache/eslint/",
+    "lint:fix": "eslint . --ext .ts,.mts,.js,.mjs,.scss,.json --fix --cache --cache-location node_modules/.cache/eslint/",
+    "format:check": "prettier --check \"./**/*.{ts,js,json,scss}\"",
+    "format:fix": "prettier --write \"./**/*.{ts,js,json,scss}\"",
+    "type-check": "tsc --noEmit",
+    "code-quality": "pnpm type-check && pnpm lint:check && pnpm format:check",
+    "code-fix": "pnpm format && pnpm lint:fix"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^3.0.2",
+    "@sveltejs/vite-plugin-svelte": "^6.2.3",
+    "@types/fancy-log": "^2.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "fs-extra": "^11.3.3",
+    "fvtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
+    "globals": "^17.0.0",
+    "gulp": "^5.0.1",
+    "jsonc-eslint-parser": "^2.4.2",
+    "prettier": "^3.7.4",
+    "rollup-plugin-visualizer": "^6.0.5",
+    "svelte-preprocess": "^6.0.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-checker": "^0.12.0"
+  },
+  "dependencies": {
+    "fancy-log": "^2.0.0"
+  }
+}

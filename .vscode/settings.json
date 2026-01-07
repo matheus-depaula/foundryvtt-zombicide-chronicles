@@ -1,0 +1,30 @@
+{
+  // Use Prettier as the default formatter
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // Format files on save
+  "editor.formatOnSave": true,
+  // Require a local Prettier config to format
+  "prettier.requireConfig": true,
+
+  // Let ESLint fix problems on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always",
+    "source.fixAll.eslint": "always"
+  },
+
+  // Files and whitespace
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+
+  // ESLint validation for JS/TS - ensure TS/React are validated and lint runs on type
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.run": "onType",
+
+  // ESLint working directories - let the extension auto-detect project roots
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "eslint.nodePath": "${workspaceFolder}/node_modules",
+
+  // Respect workspace formatter/Prettier settings (avoid global overrides)
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false
+}

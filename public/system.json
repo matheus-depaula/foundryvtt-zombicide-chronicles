@@ -1,0 +1,43 @@
+{
+  "id": "zombicide-chronicles",
+  "name": "Zombicide Chronicles",
+  "description": "An unofficial Zombicide Chronicles system for Foundry VTT",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": 13,
+    "verified": 13,
+    "maximum": 13
+  },
+  "authors": [
+    {
+      "name": "Matheus de Paula",
+      "url": "https://www.linkedin.com/in/matheuspdomingos/"
+    }
+  ],
+  "esmodules": ["src/index.ts"],
+  "styles": ["src/styles.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "pt-br",
+      "name": "Portuguese (Brazil)",
+      "path": "lang/pt-br.json"
+    }
+  ],
+  "socket": false,
+  "grid": {
+    "distance": 5,
+    "units": "Meter"
+  },
+  "license": "GNU GPLv3",
+  "url": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles",
+  "bugs": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles/issues/new/choose",
+  "manifest": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles/releases/latest/download/system.json",
+  "download": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles/releases/download/v0.1.0/zombicide-chronicles-v0.1.0.zip",
+  "readme": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles/blob/main/README.md",
+  "changelog": "https://github.com/matheus-depaula/foundryvtt-zombicide-chronicles/blob/main/CHANGELOG.md"
+}
