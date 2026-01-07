@@ -4,10 +4,11 @@ import pkg from './package.json' with { type: 'json' };
 import { resolve, relative, join } from 'node:path';
 import { watch as __watch } from 'gulp';
 import { copy, ensureDir } from 'fs-extra';
-import { access, symlink } from 'node:fs/promises';
+import { access, symlink, readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'child_process';
 
 const SYSTEM_NAME = pkg.name;
+const SYSTEM_VERSION = pkg.version;
 const DIST_PATH = resolve('.', 'dist');
 const FOUNDRY_DATA_PATH = `${process.env.FOUNDRY_PATH}/data/Data`;
 
@@ -16,8 +17,8 @@ const FOUNDRY_DATA_PATH = `${process.env.FOUNDRY_PATH}/data/Data`;
  * @param {string[] | undefined} args
  * @returns {Promise<void>}
  */
-const spawnAsync = (command, args) =>
-  new Promise((resolve, reject) => {
+const spawnAsync = (command, args) => {
+  return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
       shell: true,
@@ -35,6 +36,37 @@ const spawnAsync = (command, args) =>
       }
     });
   });
+};
+
+export const updateSystemVersion = async () => {
+  const publicSystemPath = resolve('public', 'system.json');
+
+  const content = await readFile(publicSystemPath, 'utf8');
+
+  let json = {};
+
+  try {
+    json = JSON.parse(content);
+  } catch (err) {
+    throw new Error(`Failed to parse ${publicSystemPath}: ${err?.message ?? err}`);
+  }
+
+  if (json.version !== SYSTEM_VERSION) {
+    json.version = SYSTEM_VERSION;
+
+    await writeFile(publicSystemPath, JSON.stringify(json, null, 2) + '\n', 'utf8');
+
+    const successMessage = `Updated system.json'version to ${SYSTEM_VERSION}`;
+
+    try {
+      await spawnAsync('pnpm', ['exec', 'prettier', '--write', publicSystemPath]);
+      log.info(successMessage);
+    } catch (err) {
+      log.info(successMessage);
+      log.warn(`Failed to format system.json: ${err?.message ?? err}`);
+    }
+  }
+};
 
 export async function linkData() {
   try {
@@ -64,6 +96,10 @@ export async function linkData() {
   }
 }
 
+export async function build() {
+  return spawnAsync('vite', ['build']);
+}
+
 function watch() {
   const publicDirPath = resolve(process.cwd(), 'public');
   const watcher = __watch(['public/**/*.hbs'], { ignoreInitial: false });
@@ -77,11 +113,9 @@ function watch() {
 }
 
 export async function serve() {
+  await build();
+
   watch();
 
   return spawnAsync('vite', ['serve']);
-}
-
-export async function build() {
-  return spawnAsync('vite', ['build']);
 }

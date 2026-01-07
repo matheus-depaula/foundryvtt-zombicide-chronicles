@@ -5,6 +5,7 @@ git stash -q --keep-index
 # Ensure code-quality
 
 pnpm code-quality
+pnpm gulp updateSystemVersion
 
 # Stage changed files
 

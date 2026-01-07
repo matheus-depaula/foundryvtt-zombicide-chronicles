@@ -15,7 +15,8 @@
     "format:fix": "prettier --write \"./**/*.{ts,js,json,scss}\"",
     "type-check": "tsc --noEmit",
     "code-quality": "pnpm type-check && pnpm lint:check && pnpm format:check",
-    "code-fix": "pnpm format && pnpm lint:fix"
+    "code-fix": "pnpm format && pnpm lint:fix",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.2",
@@ -35,6 +36,7 @@
     "fvtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
     "globals": "^17.0.0",
     "gulp": "^5.0.1",
+    "husky": "^9.1.7",
     "jsonc-eslint-parser": "^2.4.2",
     "prettier": "^3.7.4",
     "rollup-plugin-visualizer": "^6.0.5",
