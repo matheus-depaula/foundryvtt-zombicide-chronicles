@@ -33,6 +33,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-unused-imports": "^4.3.0",
+    "fancy-log": "^2.0.0",
     "fs-extra": "^11.3.3",
     "fvtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
     "globals": "^17.0.0",
@@ -46,8 +47,5 @@
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-checker": "^0.12.0"
-  },
-  "dependencies": {
-    "fancy-log": "^2.0.0"
   }
 }
