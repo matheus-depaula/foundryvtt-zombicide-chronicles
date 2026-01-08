@@ -10,6 +10,67 @@ const globals = require('globals');
 
 const rootDir = __dirname;
 
+// Shared rules for both TypeScript and JavaScript
+const sharedRules = {
+  // Formatting / Style
+  semi: ['error', 'always'],
+  quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+  'comma-dangle': ['error', 'always-multiline'],
+  'eol-last': ['error', 'always'],
+  'no-trailing-spaces': 'error',
+
+  // Unused expressions
+  'no-unused-expressions': 'error',
+
+  // Code quality
+  'prefer-const': 'error',
+  'no-var': 'error',
+  'object-shorthand': 'error',
+  'prefer-arrow-callback': 'error',
+  'prefer-template': 'error',
+  'no-debugger': 'error',
+  'no-alert': 'error',
+
+  // Function conventions
+  'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+  'arrow-parens': ['error', 'always'],
+
+  // Best practices
+  eqeqeq: ['error', 'always'],
+  'no-eval': 'error',
+  'no-console': 'error',
+  'no-implied-eval': 'error',
+  'no-new-func': 'error',
+  'no-return-assign': 'error',
+  'no-sequences': 'error',
+  'no-throw-literal': 'error',
+  'no-unmodified-loop-condition': 'error',
+  'no-useless-call': 'error',
+  'no-useless-concat': 'error',
+  'no-useless-return': 'error',
+  'prefer-promise-reject-errors': 'error',
+
+  // Comments
+  'spaced-comment': [
+    'error',
+    'always',
+    {
+      line: { markers: ['/', '!', '*'], exceptions: ['-', '+', '=', '*', '/', '!'] },
+      block: { markers: ['*', '!'], exceptions: ['*', '-', '+', '='] },
+    },
+  ],
+};
+
+// Shared plugins for files that support them (TS and JS with prettier)
+const sharedPlugins = {
+  prettier: prettierPlugin,
+};
+
+// Shared plugin rules
+const sharedPluginRules = {
+  'prettier/prettier': 'error',
+};
+
 module.exports = [
   // Ignored files
   {
@@ -48,17 +109,13 @@ module.exports = [
     plugins: {
       '@typescript-eslint': tsPlugin,
       import: importPlugin,
-      prettier: prettierPlugin,
       'eslint-comments': eslintCommentsPlugin,
+      ...sharedPlugins,
     },
 
     rules: {
-      // Formatting / Style
-      semi: ['error', 'always'],
-      quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
-      'comma-dangle': ['error', 'always-multiline'],
-      'eol-last': ['error', 'always'],
-      'no-trailing-spaces': 'error',
+      ...sharedRules,
+      ...sharedPluginRules,
 
       // Unused vars & imports
       'no-unused-vars': 'off',
@@ -71,7 +128,6 @@ module.exports = [
           destructuredArrayIgnorePattern: '^_',
         },
       ],
-      'no-unused-expressions': 'error',
 
       // TypeScript specific
       '@typescript-eslint/no-explicit-any': 'error',
@@ -79,15 +135,6 @@ module.exports = [
         'error',
         { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
       ],
-
-      // Code quality
-      'prefer-const': 'error',
-      'no-var': 'error',
-      'object-shorthand': 'error',
-      'prefer-arrow-callback': 'error',
-      'prefer-template': 'error',
-      'no-debugger': 'error',
-      'no-alert': 'error',
 
       // Imports
       'import/order': [
@@ -101,14 +148,17 @@ module.exports = [
       'import/no-duplicates': 'error',
       'import/no-unused-modules': 'off',
 
-      // Function conventions
-      'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
-      'arrow-parens': ['error', 'always'],
+      // TypeScript: let the compiler handle undefined symbols — disable ESLint's no-undef here
+      'no-undef': 'off',
 
-      // Best practices
-      eqeqeq: ['error', 'always'],
-      'no-eval': 'error',
-      'no-console': 'error',
+      // ESLint comments
+      'eslint-comments/disable-enable-pair': 'error',
+      'eslint-comments/no-duplicate-disable': 'error',
+      'eslint-comments/no-unlimited-disable': 'error',
+      'eslint-comments/no-unused-disable': 'error',
+      'eslint-comments/no-unused-enable': 'error',
+
+      // Override console message for TypeScript
       'no-restricted-syntax': [
         'error',
         {
@@ -116,37 +166,6 @@ module.exports = [
           message: 'Avoid using console; use `Logger` instead.',
         },
       ],
-      'no-implied-eval': 'error',
-      'no-new-func': 'error',
-
-      // TypeScript: let the compiler handle undefined symbols — disable ESLint's no-undef here
-      'no-undef': 'off',
-      'no-return-assign': 'error',
-      'no-sequences': 'error',
-      'no-throw-literal': 'error',
-      'no-unmodified-loop-condition': 'error',
-      'no-useless-call': 'error',
-      'no-useless-concat': 'error',
-      'no-useless-return': 'error',
-      'prefer-promise-reject-errors': 'error',
-
-      // Comments
-      'spaced-comment': [
-        'error',
-        'always',
-        {
-          line: { markers: ['/', '!', '*'], exceptions: ['-', '+', '=', '*', '/', '!'] },
-          block: { markers: ['*', '!'], exceptions: ['*', '-', '+', '='] },
-        },
-      ],
-      'eslint-comments/disable-enable-pair': 'error',
-      'eslint-comments/no-duplicate-disable': 'error',
-      'eslint-comments/no-unlimited-disable': 'error',
-      'eslint-comments/no-unused-disable': 'error',
-      'eslint-comments/no-unused-enable': 'error',
-
-      // Prettier
-      'prettier/prettier': 'error',
     },
   },
 
@@ -161,8 +180,25 @@ module.exports = [
         ...globals.node,
       },
     },
+    plugins: {
+      ...sharedPlugins,
+    },
     rules: {
-      'no-console': 'error',
+      ...sharedRules,
+      ...sharedPluginRules,
+
+      // Unused vars
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+        },
+      ],
+
+      // Override console message for JavaScript
       'no-restricted-syntax': [
         'error',
         {

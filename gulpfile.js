@@ -1,46 +1,52 @@
-import 'dotenv/config';
+import path from 'node:path';
+import fs from 'fs-extra';
+import gulp from 'gulp';
+import cp from 'child_process';
+import archiver from 'archiver';
 import log from 'fancy-log';
 import pkg from './package.json' with { type: 'json' };
-import { resolve, relative, join } from 'node:path';
-import { watch as __watch } from 'gulp';
-import { copy } from 'fs-extra';
-import { access, symlink, readFile, writeFile } from 'node:fs/promises';
-import { spawn } from 'child_process';
 
 const SYSTEM_NAME = pkg.name.replace(/^foundryvtt-/, '');
 const SYSTEM_VERSION = pkg.version;
-const DIST_PATH = resolve('.', 'dist');
+const SYSTEM_FILENAME = 'system.json';
 
-/**
- * @param {string} command
- * @param {string[] | undefined} args
- * @returns {Promise<void>}
- */
-const spawnAsync = (command, args) => {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      stdio: 'inherit',
-      shell: true,
-    });
+const DIST_DIR_PATH = path.resolve('.', 'dist');
+const PUBLIC_DIR_PATH = path.resolve('.', 'public');
+const PACKAGE_DIR_PATH = path.resolve('.', 'package');
 
-    child.on('error', (error) => {
-      reject(error);
-    });
-
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Exited with code ${code}`));
-      }
-    });
+// util spawn
+const spawnAsync = (command, args) =>
+  new Promise((resolve, reject) => {
+    const child = cp.spawn(command, args, { stdio: 'inherit', shell: true });
+    child.on('error', reject);
+    child.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`Exited with code ${code}`))));
   });
-};
 
-export const updateSystemVersion = async () => {
-  const publicSystemPath = resolve('public', 'system.json');
+export async function buildTask() {
+  await spawnAsync('vite', ['build']);
+}
 
-  const content = await readFile(publicSystemPath, 'utf8');
+function distWatcherTask(_) {
+  const watcher = gulp.watch([`${PUBLIC_DIR_PATH}/**/*`], { ignoreInitial: false });
+
+  watcher.on('change', async (file) => {
+    const relativeFile = path.relative(PUBLIC_DIR_PATH, file);
+    const dest = path.join(DIST_DIR_PATH, relativeFile);
+
+    await fs.ensureDir(path.dirname(dest));
+    await fs.copy(file, dest);
+    log.info('Updated dist file:', relativeFile);
+  });
+}
+
+function serveTask(_) {
+  spawnAsync('vite', ['serve']);
+}
+
+export const updateSystemVersionTask = async () => {
+  const publicSystemPath = path.resolve(PUBLIC_DIR_PATH, SYSTEM_FILENAME);
+
+  const content = await fs.readFile(publicSystemPath, 'utf8');
 
   let json = {};
 
@@ -56,40 +62,36 @@ export const updateSystemVersion = async () => {
     json.version = SYSTEM_VERSION;
     json.download = `${repositoryUrl}/releases/download/v${SYSTEM_VERSION}/${SYSTEM_NAME}-v${SYSTEM_VERSION}.zip`;
 
-    await writeFile(publicSystemPath, JSON.stringify(json, null, 2) + '\n', 'utf8');
+    await fs.writeFile(publicSystemPath, `${JSON.stringify(json, null, 2)}\n`, 'utf8');
 
-    const successMessage = `Updated system.json'version to ${SYSTEM_VERSION}`;
+    const successMessage = `Updated ${SYSTEM_FILENAME} version to ${SYSTEM_VERSION}`;
 
     try {
       await spawnAsync('pnpm', ['exec', 'prettier', '--write', publicSystemPath]);
       log.info(successMessage);
     } catch (err) {
       log.info(successMessage);
-      log.warn(`Failed to format system.json: ${err?.message ?? err}`);
+      log.warn(`Failed to format ${SYSTEM_FILENAME}: ${err?.message ?? err}`);
     }
   }
 };
 
-export async function linkData() {
+export async function linkDataTask() {
   const userDataPath = process.env.FOUNDRY_USER_DATA_PATH;
 
-  try {
-    await access(userDataPath);
-  } catch {
+  if (!fs.existsSync(userDataPath)) {
     throw new Error('Invalid FOUNDRY_USER_DATA_PATH environment variable');
   }
 
-  try {
-    await access(DIST_PATH);
-  } catch {
+  if (!fs.existsSync(DIST_DIR_PATH)) {
     log.info('Build not found, building now...');
-    await build();
+    await buildTask();
   }
 
-  const systemDir = join(userDataPath, 'systems', SYSTEM_NAME);
+  const systemDir = path.join(userDataPath, 'systems', SYSTEM_NAME);
 
   try {
-    await symlink(DIST_PATH, systemDir, process.platform === 'win32' ? 'junction' : 'dir');
+    await fs.symlink(DIST_DIR_PATH, systemDir, process.platform === 'win32' ? 'junction' : 'dir');
     log.info(`Created symlink at ${systemDir}`);
   } catch {
     log.info(`Symlink already exists at ${systemDir}`);
@@ -98,24 +100,35 @@ export async function linkData() {
   await spawnAsync('pnpm', ['fvtt', 'configure', 'set', 'dataPath', userDataPath]);
 }
 
-export async function build() {
-  return await spawnAsync('vite', ['build']);
-}
+export async function packageTask() {
+  await fs.ensureDir(PACKAGE_DIR_PATH);
 
-function watch() {
-  const publicDirPath = resolve(process.cwd(), 'public');
-  const watcher = __watch(['public/**/*'], { ignoreInitial: false });
+  const systemFile = path.join(PUBLIC_DIR_PATH, SYSTEM_FILENAME);
 
-  watcher.on('change', async function (file) {
-    const partialFile = relative(publicDirPath, file);
-    await copy(join('public', partialFile), join(DIST_PATH, partialFile));
+  if (await fs.pathExists(path.join(PACKAGE_DIR_PATH, SYSTEM_FILENAME))) {
+    await fs.remove(path.join(PACKAGE_DIR_PATH, SYSTEM_FILENAME));
+  }
+
+  await fs.copy(systemFile, path.join(PACKAGE_DIR_PATH, SYSTEM_FILENAME));
+
+  const zipName = `${SYSTEM_NAME}-v${SYSTEM_VERSION}.zip`;
+  const zipPath = path.join(PACKAGE_DIR_PATH, zipName);
+
+  const zipFile = fs.createWriteStream(zipPath);
+  const zip = archiver('zip', { zlib: { level: 9 } });
+
+  zip.pipe(zipFile);
+  zip.directory(DIST_DIR_PATH, SYSTEM_NAME);
+  zip.finalize();
+
+  zipFile.on('close', () => {
+    log.info(`Package created: ${zipName}, ${zip.pointer()} bytes`);
+  });
+
+  zip.on('error', (err) => {
+    throw err;
   });
 }
 
-export async function serve() {
-  await build();
-
-  watch();
-
-  return spawnAsync('vite', ['serve']);
-}
+export const start = gulp.series(buildTask, distWatcherTask);
+export const dev = gulp.series(buildTask, gulp.parallel(serveTask, distWatcherTask));
