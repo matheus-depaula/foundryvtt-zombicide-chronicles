@@ -1,13 +1,14 @@
 name: Release on Tag
 
 on:
-  push:
-    tags:
-      - 'v*'
+  # push:
+  #   tags:
+  #     - 'v*'
+  workflow_dispatch:
 
 jobs:
   create-release:
-    permissions: write-all
+    permissions: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
