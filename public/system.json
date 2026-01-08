@@ -1,6 +1,6 @@
 {
   "id": "zombicide-chronicles",
-  "name": "Zombicide Chronicles",
+  "title": "Zombicide Chronicles",
   "description": "An unofficial Zombicide Chronicles system for Foundry VTT",
   "version": "0.1.0",
   "compatibility": {
@@ -14,8 +14,8 @@
       "url": "https://www.linkedin.com/in/matheuspdomingos/"
     }
   ],
-  "esmodules": ["src/index.ts"],
-  "styles": ["src/styles.css"],
+  "esmodules": ["zombicide-chronicles.js"],
+  "styles": ["zombicide-chronicles.css"],
   "languages": [
     {
       "lang": "en",
@@ -28,7 +28,7 @@
       "path": "lang/pt-br.json"
     }
   ],
-  "socket": false,
+  "socket": true,
   "grid": {
     "distance": 5,
     "units": "Meter"

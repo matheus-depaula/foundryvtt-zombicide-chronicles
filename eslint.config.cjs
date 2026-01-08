@@ -113,7 +113,7 @@ module.exports = [
         'error',
         {
           selector: "CallExpression[callee.object.name='console']",
-          message: 'Avoid using console; use the global `log` (fancy-log) instead.',
+          message: 'Avoid using console; use `Logger` instead.',
         },
       ],
       'no-implied-eval': 'error',

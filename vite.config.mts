@@ -10,7 +10,7 @@ const SERVER_PORT = 30001;
 const FOUNDRY_PORT = 30000;
 
 const config: UserConfig = {
-  root: path.resolve(__dirname, 'src'),
+  root: 'src/',
   base: '/systems/zombicide-chronicles/',
   publicDir: path.resolve(__dirname, 'public'),
   server: {
@@ -30,7 +30,7 @@ const config: UserConfig = {
     sourcemap: true,
     lib: {
       name: 'zombicide-chronicles',
-      entry: path.resolve(__dirname, 'src/index.ts'),
+      entry: path.resolve(__dirname, 'src/zombicide-chronicles.ts'),
       formats: ['es'],
       fileName: 'zombicide-chronicles',
     },
@@ -38,6 +38,12 @@ const config: UserConfig = {
   esbuild: {
     minifyIdentifiers: false,
     keepNames: true,
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '~': path.resolve(__dirname, 'public'),
+    },
   },
   plugins: [
     svelte({

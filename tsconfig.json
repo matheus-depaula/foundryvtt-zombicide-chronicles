@@ -33,6 +33,6 @@
       "~/*": ["public/*"]
     }
   },
-  "include": ["src/**/*", "public/**/*", "./*.mts", "types"],
+  "include": ["src/types/**/*.d.ts", "src/**/*.ts", "public/**/*.ts", "./*.mts"],
   "exclude": ["dist"]
 }

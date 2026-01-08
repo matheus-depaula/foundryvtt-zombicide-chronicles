@@ -3,14 +3,14 @@ import log from 'fancy-log';
 import pkg from './package.json' with { type: 'json' };
 import { resolve, relative, join } from 'node:path';
 import { watch as __watch } from 'gulp';
-import { copy, ensureDir } from 'fs-extra';
+import { copy } from 'fs-extra';
 import { access, symlink, readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'child_process';
 
-const SYSTEM_NAME = pkg.name;
+const SYSTEM_NAME = pkg.name.replace(/^foundryvtt-/, '');
 const SYSTEM_VERSION = pkg.version;
 const DIST_PATH = resolve('.', 'dist');
-const FOUNDRY_DATA_PATH = `${process.env.FOUNDRY_PATH}/data/Data`;
+const FOUNDRY_USER_DATA_PATH = process.env.FOUNDRY_USER_DATA_PATH;
 
 /**
  * @param {string} command
@@ -70,44 +70,40 @@ export const updateSystemVersion = async () => {
 
 export async function linkData() {
   try {
-    await access(FOUNDRY_DATA_PATH);
+    await access(FOUNDRY_USER_DATA_PATH);
   } catch {
-    throw new Error('Invalid FOUNDRY_PATH environment variable');
+    throw new Error('Invalid FOUNDRY_USER_DATA_PATH environment variable');
   }
 
   try {
     await access(DIST_PATH);
   } catch {
     log.info('Build not found, building now...');
-
     await build();
   }
 
-  const systemDir = join(FOUNDRY_DATA_PATH, 'systems', SYSTEM_NAME);
-
-  await ensureDir(systemDir);
+  const systemDir = join(FOUNDRY_USER_DATA_PATH, 'systems', SYSTEM_NAME);
 
   try {
-    await symlink(DIST_PATH, systemDir, 'junction');
+    await symlink(DIST_PATH, systemDir, process.platform === 'win32' ? 'junction' : 'dir');
     log.info(`Created symlink at ${systemDir}`);
   } catch {
     log.info(`Symlink already exists at ${systemDir}`);
-    return;
   }
+
+  await spawnAsync('pnpm', ['fvtt', 'configure', 'set', 'dataPath', FOUNDRY_USER_DATA_PATH]);
 }
 
 export async function build() {
-  return spawnAsync('vite', ['build']);
+  return await spawnAsync('vite', ['build']);
 }
 
 function watch() {
   const publicDirPath = resolve(process.cwd(), 'public');
-  const watcher = __watch(['public/**/*.hbs'], { ignoreInitial: false });
+  const watcher = __watch(['public/**/*'], { ignoreInitial: false });
 
   watcher.on('change', async function (file) {
-    log.info(`File ${file} was changed`);
     const partialFile = relative(publicDirPath, file);
-
     await copy(join('public', partialFile), join('dist', partialFile));
   });
 }
