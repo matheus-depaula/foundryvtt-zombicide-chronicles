@@ -14,6 +14,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@v3
@@ -37,14 +38,14 @@ jobs:
       - name: Generate Package
         run: pnpm package
 
-      - name: Create Git tag
+      - name: Push Git tag
         id: tag
         run: |
           VERSION=${{ steps.version.outputs.version }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git tag "$VERSION"
-          git push origin "$VERSION"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/matheus-depaula/foundryvtt-zombicide-chronicles.git "$VERSION"
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate if prerelease
