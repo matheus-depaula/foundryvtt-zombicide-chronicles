@@ -1,12 +1,12 @@
-name: Release on Push
+name: Release on Tag
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
-  create-tag-and-release:
+  create-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,32 +25,16 @@ jobs:
           npm install -g pnpm
           pnpm install --frozen-lockfile
 
-      - name: Get version from package.json
-        id: version
-        run: |
-          VERSION=$(jq -r .version package.json)
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-
       - name: Build Project
         run: pnpm build
 
       - name: Generate Package
         run: pnpm package
 
-      - name: Push Git tag
-        id: tag
-        run: |
-          VERSION=${{ steps.version.outputs.version }}
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag "$VERSION"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/matheus-depaula/foundryvtt-zombicide-chronicles.git "$VERSION"
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Validate if prerelease
         id: prerelease
         run: |
-          if [[ "${{ steps.version.outputs.version }}" == *-* ]]; then
+          if [[ "${{ github.ref_name }}" == *-* ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
@@ -59,15 +43,15 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.tag.outputs.tag }}
-          name: ${{ steps.tag.outputs.tag }}
+          tag: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           draft: true
           allowUpdates: true
           omitDraftDuringUpdate: true
           omitPrereleaseDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ steps.prerelease.outputs.is_prerelease }}
-          artifacts: './package/system.json ./package/zombicide-chronicles-${{ steps.version.outputs.version }}.zip'
+          artifacts: './package/system.json ./package/zombicide-chronicles-${{ github.ref_name }}.zip'
           body: |
             ## Changes in this release
             See [CHANGELOG](./CHANGELOG.md) for details.
