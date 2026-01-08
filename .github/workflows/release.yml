@@ -19,10 +19,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm ci --frozen-lockfile
+        run: |
+          npm install -g pnpm
+          pnpm ci --frozen-lockfile
 
       - name: Get version from package.json
         id: version
