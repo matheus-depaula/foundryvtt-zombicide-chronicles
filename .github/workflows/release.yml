@@ -23,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install -g pnpm
-          pnpm ci --frozen-lockfile
+          pnpm install --frozen-lockfile
 
       - name: Get version from package.json
         id: version
