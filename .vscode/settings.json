@@ -17,7 +17,7 @@
   "files.trimTrailingWhitespace": true,
 
   // ESLint validation for JS/TS - ensure TS/React are validated and lint runs on type
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.validate": ["typescript", "javascript", "json"],
   "eslint.run": "onType",
 
   // ESLint working directories - let the extension auto-detect project roots

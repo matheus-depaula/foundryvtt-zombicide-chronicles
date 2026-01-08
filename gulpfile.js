@@ -10,7 +10,6 @@ import { spawn } from 'child_process';
 const SYSTEM_NAME = pkg.name.replace(/^foundryvtt-/, '');
 const SYSTEM_VERSION = pkg.version;
 const DIST_PATH = resolve('.', 'dist');
-const FOUNDRY_USER_DATA_PATH = process.env.FOUNDRY_USER_DATA_PATH;
 
 /**
  * @param {string} command
@@ -52,7 +51,10 @@ export const updateSystemVersion = async () => {
   }
 
   if (json.version !== SYSTEM_VERSION) {
+    const repositoryUrl = process.env.REMOTE_REPOSITORY_URL;
+
     json.version = SYSTEM_VERSION;
+    json.download = `${repositoryUrl}/releases/download/v${SYSTEM_VERSION}/${SYSTEM_NAME}-v${SYSTEM_VERSION}.zip`;
 
     await writeFile(publicSystemPath, JSON.stringify(json, null, 2) + '\n', 'utf8');
 
@@ -69,8 +71,10 @@ export const updateSystemVersion = async () => {
 };
 
 export async function linkData() {
+  const userDataPath = process.env.FOUNDRY_USER_DATA_PATH;
+
   try {
-    await access(FOUNDRY_USER_DATA_PATH);
+    await access(userDataPath);
   } catch {
     throw new Error('Invalid FOUNDRY_USER_DATA_PATH environment variable');
   }
@@ -82,7 +86,7 @@ export async function linkData() {
     await build();
   }
 
-  const systemDir = join(FOUNDRY_USER_DATA_PATH, 'systems', SYSTEM_NAME);
+  const systemDir = join(userDataPath, 'systems', SYSTEM_NAME);
 
   try {
     await symlink(DIST_PATH, systemDir, process.platform === 'win32' ? 'junction' : 'dir');
@@ -91,7 +95,7 @@ export async function linkData() {
     log.info(`Symlink already exists at ${systemDir}`);
   }
 
-  await spawnAsync('pnpm', ['fvtt', 'configure', 'set', 'dataPath', FOUNDRY_USER_DATA_PATH]);
+  await spawnAsync('pnpm', ['fvtt', 'configure', 'set', 'dataPath', userDataPath]);
 }
 
 export async function build() {
@@ -104,7 +108,7 @@ function watch() {
 
   watcher.on('change', async function (file) {
     const partialFile = relative(publicDirPath, file);
-    await copy(join('public', partialFile), join('dist', partialFile));
+    await copy(join('public', partialFile), join(DIST_PATH, partialFile));
   });
 }
 
