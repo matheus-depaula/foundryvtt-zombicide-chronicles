@@ -4,13 +4,10 @@ on:
   push:
     tags:
       - 'v*'
-  # workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   create-release:
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
